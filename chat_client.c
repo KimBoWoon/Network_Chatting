@@ -28,12 +28,12 @@ int main(int argc, char **argv) {
     pthread_t snd_thread, rcv_thread;
     void *thread_result;
 
-    if (argc != 4) {
+    if (argc != 3) {
         printf("Usage : %s <IP> <port> <name>\n", argv[0]);
         exit(1);
     }
 
-    sprintf(name, "[%s]", argv[3]);
+    //sprintf(name, "[%s]", argv[3]);
 
     sock = socket(PF_INET, SOCK_STREAM, 0);
     if (sock == -1)
@@ -60,15 +60,26 @@ int main(int argc, char **argv) {
 void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 {
     int sock = (int) arg;
-    char name_message[NAMESIZE + BUFSIZE];
+    int i;
+    char name_message[NAMESIZE + BUFSIZE], temp[NAMESIZE];
     while (1) {
         fgets(message, BUFSIZE, stdin);
         if (!strcmp(message, "@@out\n")) {  /* 'q' 입력 시 종료 */
             close(sock);
             exit(0);
+        } else if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
+            memset(temp, 0, sizeof(char) * NAMESIZE);
+
+            for (i = 7; message[i] != '\n'; i++)
+                temp[i - 7] = message[i];
+
+            sprintf(name, "[%s]", temp);
+            sprintf(name_message, "%s", message);
+            write(sock, name_message, strlen(name_message));
+        } else {
+            sprintf(name_message, "%s %s", name, message);
+            write(sock, name_message, strlen(name_message));
         }
-        sprintf(name_message, "%s %s", name, message);
-        write(sock, name_message, strlen(name_message));
     }
 }
 

@@ -15,18 +15,22 @@
 
 typedef struct User {
     char* name;
-
-};
+    char* ipAddress;
+} user;
 
 void *clnt_connection(void *arg);
 
 void send_message(char *message, int len);
+
+void addUser(char *message);
 
 void error_handling(char *message);
 
 int clnt_number = 0;
 int clnt_socks[10];
 pthread_mutex_t mutx;
+
+user userList[10];
 
 int main(int argc, char **argv) {
     int serv_sock;
@@ -35,6 +39,8 @@ int main(int argc, char **argv) {
     struct sockaddr_in clnt_addr;
     int clnt_addr_size;
     pthread_t thread;
+
+    user u;
 
     if (argc != 2) {
         printf("Usage : %s <port>\n", argv[0]);
@@ -62,6 +68,10 @@ int main(int argc, char **argv) {
         clnt_sock = accept(serv_sock, (struct sockaddr *) &clnt_addr, &clnt_addr_size);
 
         pthread_mutex_lock(&mutx);
+        u.name = "name";
+        u.ipAddress = inet_ntoa(clnt_addr.sin_addr);
+        userList[clnt_number] = u;
+        printf("%s %s\n", u.name, u.ipAddress);
         clnt_socks[clnt_number++] = clnt_sock;
         pthread_mutex_unlock(&mutx);
 
@@ -78,8 +88,16 @@ void *clnt_connection(void *arg) {
     char message[BUFSIZE];
     int i;
 
-    while ((str_len = read(clnt_sock, message, sizeof(message))) != 0)
-        send_message(message, str_len);
+    while ((str_len = read(clnt_sock, message, sizeof(message))) != 0) {
+        //printf("%s", message);
+        if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
+            printf("before addUser\n");
+            addUser(message);
+            printf("after addUser\n");
+        } else {
+            send_message(message, str_len);
+        }
+    }
 
     pthread_mutex_lock(&mutx);
     for (i = 0; i < clnt_number; i++) {   /* 클라이언트 연결 종료 시 */
@@ -95,6 +113,24 @@ void *clnt_connection(void *arg) {
 
     close(clnt_sock);
     return 0;
+}
+
+void addUser(char *message) {
+    char temp[BUFSIZE] = { 0 };
+    char *addtemp = NULL;
+
+    strcpy(temp, message);
+    strtok(temp, " ");
+
+    addtemp = strtok(NULL, " ");
+    addtemp[strlen(addtemp) - 1] = '\0';
+    printf("%s님이 입장했습니다!\n", addtemp);
+    userList[clnt_number - 1].name = addtemp;
+    sprintf(message, "%s님이 입장하셨습니다!\n", userList[clnt_number - 1].name);
+    send_message(message, strlen(message));
+    memset(message, 0, sizeof(char) * BUFSIZE);
+//    addtemp = strtok(NULL, " ");
+//    strcpy(userList[num].ipAddress, addtemp);
 }
 
 void send_message(char *message, int len) {
