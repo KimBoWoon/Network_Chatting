@@ -64,7 +64,7 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
     char name_message[NAMESIZE + BUFSIZE], temp[NAMESIZE];
     while (1) {
         fgets(message, BUFSIZE, stdin);
-        if (!strcmp(message, "@@out\n")) {  /* 'q' 입력 시 종료 */
+        if (!strcmp(message, "@@out\n")) {  /* '@@out' 입력 시 종료 */
             close(sock);
             exit(0);
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
@@ -75,11 +75,12 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 
             sprintf(name, "[%s]", temp);
             sprintf(name_message, "%s", message);
-            write(sock, name_message, strlen(name_message));
+        } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
+            sprintf(name_message, "@@member");
         } else {
             sprintf(name_message, "%s %s", name, message);
-            write(sock, name_message, strlen(name_message));
         }
+        write(sock, name_message, strlen(name_message));
     }
 }
 
@@ -94,6 +95,7 @@ void *recv_message(void *arg) /* 메시지 수신 쓰레드 실행 함수 */
             return 1;
         name_message[str_len] = 0;
         fputs(name_message, stdout);
+        memset(name_message, 0, sizeof(char) * (NAMESIZE + BUFSIZE));
     }
 }
 

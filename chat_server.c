@@ -24,6 +24,8 @@ void send_message(char *message, int len);
 
 void addUser(char *message);
 
+void showUser();
+
 void error_handling(char *message);
 
 int clnt_number = 0;
@@ -71,7 +73,6 @@ int main(int argc, char **argv) {
         u.name = "name";
         u.ipAddress = inet_ntoa(clnt_addr.sin_addr);
         userList[clnt_number] = u;
-        printf("%s %s\n", u.name, u.ipAddress);
         clnt_socks[clnt_number++] = clnt_sock;
         pthread_mutex_unlock(&mutx);
 
@@ -85,24 +86,31 @@ int main(int argc, char **argv) {
 void *clnt_connection(void *arg) {
     int clnt_sock = (int) arg;
     int str_len = 0;
-    char message[BUFSIZE];
+    char message[BUFSIZE], temp[BUFSIZE];
     int i;
 
     while ((str_len = read(clnt_sock, message, sizeof(message))) != 0) {
-        //printf("%s", message);
         if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
-            printf("before addUser\n");
             addUser(message);
-            printf("after addUser\n");
+        } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
+            printf("접속중인 사람 출력\n");
+            pthread_mutex_lock(&mutx);
+            for (i = 0; i < clnt_number; i++) {
+                sprintf(temp, "[%s] 접속 중\n", userList[i].name);
+                printf("%s", temp);
+                write(clnt_sock, temp, sizeof(message));
+            }
+            pthread_mutex_unlock(&mutx);
         } else {
             send_message(message, str_len);
         }
+
+        memset(message, 0, sizeof(char) * BUFSIZE);
     }
 
     pthread_mutex_lock(&mutx);
     for (i = 0; i < clnt_number; i++) {   /* 클라이언트 연결 종료 시 */
         if (clnt_sock == clnt_socks[i]) {
-            //printf("접속 종료 %s", clnt_socks[i]);
             for (; i < clnt_number - 1; i++)
                 clnt_socks[i] = clnt_socks[i + 1];
             break;
@@ -124,13 +132,19 @@ void addUser(char *message) {
 
     addtemp = strtok(NULL, " ");
     addtemp[strlen(addtemp) - 1] = '\0';
-    printf("%s님이 입장했습니다!\n", addtemp);
+    printf("[%s]님이 입장했습니다!\n", addtemp);
     userList[clnt_number - 1].name = addtemp;
-    sprintf(message, "%s님이 입장하셨습니다!\n", userList[clnt_number - 1].name);
+    sprintf(message, "[%s]님이 입장하셨습니다!\n", userList[clnt_number - 1].name);
     send_message(message, strlen(message));
     memset(message, 0, sizeof(char) * BUFSIZE);
-//    addtemp = strtok(NULL, " ");
-//    strcpy(userList[num].ipAddress, addtemp);
+}
+
+void showUser() {
+    int i;
+//    pthread_mutex_lock(&mutx);
+//    for (i = 0; i < clnt_number; i++)
+//        write(clnt_socks[i], message, len);
+//    pthread_mutex_unlock(&mutx);
 }
 
 void send_message(char *message, int len) {
