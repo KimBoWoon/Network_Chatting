@@ -14,7 +14,7 @@
 #define BUFSIZE 100
 
 typedef struct User {
-    char* name;
+    char name[BUFSIZE];
     char* ipAddress;
 } user;
 
@@ -22,7 +22,7 @@ void *clnt_connection(void *arg);
 
 void send_message(char *message, int len);
 
-void addUser(char *message);
+void addUser(int clnt_sock, char *message);
 
 void showUser();
 
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         clnt_sock = accept(serv_sock, (struct sockaddr *) &clnt_addr, &clnt_addr_size);
 
         pthread_mutex_lock(&mutx);
-        u.name = "name";
+        //u.name = "name";
         u.ipAddress = inet_ntoa(clnt_addr.sin_addr);
         userList[clnt_number] = u;
         clnt_socks[clnt_number++] = clnt_sock;
@@ -91,14 +91,15 @@ void *clnt_connection(void *arg) {
 
     while ((str_len = read(clnt_sock, message, sizeof(message))) != 0) {
         if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
-            addUser(message);
+            addUser(clnt_sock, message);
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             printf("접속중인 사람 출력\n");
             pthread_mutex_lock(&mutx);
             for (i = 0; i < clnt_number; i++) {
                 sprintf(temp, "[%s] 접속 중\n", userList[i].name);
                 printf("%s", temp);
-                write(clnt_sock, temp, sizeof(message));
+                write(clnt_sock, temp, sizeof(temp));
+                memset(temp, 0, sizeof(char) * BUFSIZE);
             }
             pthread_mutex_unlock(&mutx);
         } else {
@@ -123,9 +124,10 @@ void *clnt_connection(void *arg) {
     return 0;
 }
 
-void addUser(char *message) {
+void addUser(int clnt_sock, char *message) {
     char temp[BUFSIZE] = { 0 };
     char *addtemp = NULL;
+    int i = 0;
 
     strcpy(temp, message);
     strtok(temp, " ");
@@ -133,10 +135,16 @@ void addUser(char *message) {
     addtemp = strtok(NULL, " ");
     addtemp[strlen(addtemp) - 1] = '\0';
     printf("[%s]님이 입장했습니다!\n", addtemp);
-    userList[clnt_number - 1].name = addtemp;
-    sprintf(message, "[%s]님이 입장하셨습니다!\n", userList[clnt_number - 1].name);
+    for (i = 0; i < clnt_number; i++) {
+        if (clnt_sock == clnt_socks[i]) {
+            strcpy(userList[i].name, addtemp);
+            break;
+        }
+    }
+    sprintf(message, "[%s]님이 입장하셨습니다!\n", addtemp);
     send_message(message, strlen(message));
     memset(message, 0, sizeof(char) * BUFSIZE);
+    memset(addtemp, 0, sizeof(char*));
 }
 
 void showUser() {
