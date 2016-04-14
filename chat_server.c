@@ -15,7 +15,6 @@
 
 typedef struct User {
     char name[BUFSIZE];
-    char* ipAddress;
 } user;
 
 void *clnt_connection(void *arg);
@@ -25,6 +24,8 @@ void send_message(char *message, int len);
 void addUser(int clnt_sock, char *message);
 
 void showUserInfo(int clnt_sock);
+
+void whisper(char *message);
 
 void error_handling(char *message);
 
@@ -70,8 +71,7 @@ int main(int argc, char **argv) {
         clnt_sock = accept(serv_sock, (struct sockaddr *) &clnt_addr, &clnt_addr_size);
 
         pthread_mutex_lock(&mutx);
-        //u.name = "name";
-        u.ipAddress = inet_ntoa(clnt_addr.sin_addr);
+        strcpy(u.name, "name");
         userList[clnt_number] = u;
         clnt_socks[clnt_number++] = clnt_sock;
         pthread_mutex_unlock(&mutx);
@@ -95,29 +95,7 @@ void *clnt_connection(void *arg) {
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             showUserInfo(clnt_sock);
         } else if(message[0] == '@' && message[1] == '@' && message[2] == 't' && message[3] == 'a' && message[4] == 'l' && message[5] == 'k') {
-            char whisperName[BUFSIZE] = {0}, whisperMessage[BUFSIZE] = {0};
-            char *temp = NULL;
-            int destination = 0;
-
-            strtok(message, " ");
-            temp = strtok(NULL, " ");
-            //temp[strlen(temp) - 1] = '\0';
-            strcpy(whisperName, temp);
-
-            temp = strtok(NULL, " ");
-            //temp[strlen(temp) - 1] = '\0';
-            strcpy(whisperMessage, temp);
-
-            for (i = 0; i < clnt_number; i++) {
-                if (strcmp(userList[i].name, whisperName) == 0) {
-                    printf("strcmp(userList[i].name, whisperName) >> %d\n", i);
-                    destination = clnt_socks[i];
-                }
-            }
-
-            sprintf(message, "whisper >> [%s] %s\n", whisperName, whisperMessage);
-
-            write(destination, message, sizeof(message));
+            whisper(message);
         } else {
             send_message(message, str_len);
         }
@@ -174,6 +152,32 @@ void showUserInfo(int clnt_sock) {
         memset(temp, 0, sizeof(char) * BUFSIZE);
     }
     write(clnt_sock, merge, sizeof(merge));
+}
+
+void whisper(char *message) {
+    char whisperName[BUFSIZE] = {0}, whisperMessage[BUFSIZE] = {0}, sendMessage[BUFSIZE] = {0};
+    char *temp = NULL;
+    int destination = 0, i;
+
+    strtok(message, " ");
+    temp = strtok(NULL, " ");
+    strcpy(whisperName, temp);
+
+    temp = strtok(NULL, " ");
+    while (temp != NULL) {
+        strcat(whisperMessage, temp);
+        strcat(whisperMessage, " ");
+        temp = strtok(NULL, " ");
+    }
+
+    for (i = 0; i < clnt_number; i++) {
+        if (strcmp(userList[i].name, whisperName) == 0)
+            destination = clnt_socks[i];
+    }
+
+    sprintf(sendMessage, "whisper >> [%s] %s", whisperName, whisperMessage);
+
+    write(destination, sendMessage, sizeof(sendMessage));
 }
 
 void send_message(char *message, int len) {

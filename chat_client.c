@@ -64,6 +64,7 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
     char *userName = NULL;
     while (1) {
         fgets(message, BUFSIZE, stdin);
+
         if (!strcmp(message, "@@out\n")) {  /* '@@out' 입력 시 종료 */
 //            sprintf(name_message, "[%s]님이 퇴장하셨습니다!\n", userName);
 //            write(sock, name_message, sizeof(name_message));
@@ -79,28 +80,29 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
             write(sock, name_message, sizeof(name_message));
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             sprintf(name_message, "@@member");
+            write(sock, name_message, strlen(name_message));
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 't' && message[3] == 'a' && message[4] == 'l' && message[5] == 'k') {
             char whisperName[NAMESIZE] = {0}, whisperMessage[NAMESIZE] = {0};
             char *temp = NULL;
 
             strtok(message, " ");
             temp = strtok(NULL, " ");
-            //temp[strlen(temp) - 1] = '\0';
             strcpy(whisperName, temp);
 
             temp = strtok(NULL, " ");
-            //temp[strlen(temp) - 1] = '\0';
-            strcpy(whisperMessage, temp);
+            while (temp != NULL) {
+                strcat(whisperMessage, temp);
+                strcat(whisperMessage, " ");
+                temp = strtok(NULL, " ");
+            }
 
             sprintf(name_message, "@@talk %s %s", whisperName, whisperMessage);
-        } else {
-            sprintf(name_message, "%s %s", name, message);
-        }
-
-        if (strcmp(name, "[Default]") == 0) {
+            write(sock, name_message, strlen(name_message));
+        } else if (strcmp(name, "[Default]") == 0) {
             printf("@@join <name> 사용해 닉네임 설정을 해주시기 바랍니다.\n");
             continue;
         } else {
+            sprintf(name_message, "%s %s", name, message);
             write(sock, name_message, strlen(name_message));
         }
     }
