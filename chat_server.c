@@ -11,7 +11,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
-#define BUFSIZE 100
+#define BUFSIZE 1000
 
 typedef struct User {
     char name[BUFSIZE];
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
 void *clnt_connection(void *arg) {
     int clnt_sock = (int) arg;
     int str_len = 0;
-    char message[BUFSIZE], temp[BUFSIZE], merge[BUFSIZE];
+    char message[BUFSIZE];
     int i;
 
     while ((str_len = read(clnt_sock, message, sizeof(message))) != 0) {
@@ -94,6 +94,30 @@ void *clnt_connection(void *arg) {
             addUser(clnt_sock, message);
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             showUserInfo(clnt_sock);
+        } else if(message[0] == '@' && message[1] == '@' && message[2] == 't' && message[3] == 'a' && message[4] == 'l' && message[5] == 'k') {
+            char whisperName[BUFSIZE] = {0}, whisperMessage[BUFSIZE] = {0};
+            char *temp = NULL;
+            int destination = 0;
+
+            strtok(message, " ");
+            temp = strtok(NULL, " ");
+            //temp[strlen(temp) - 1] = '\0';
+            strcpy(whisperName, temp);
+
+            temp = strtok(NULL, " ");
+            //temp[strlen(temp) - 1] = '\0';
+            strcpy(whisperMessage, temp);
+
+            for (i = 0; i < clnt_number; i++) {
+                if (strcmp(userList[i].name, whisperName) == 0) {
+                    printf("strcmp(userList[i].name, whisperName) >> %d\n", i);
+                    destination = clnt_socks[i];
+                }
+            }
+
+            sprintf(message, "whisper >> [%s] %s\n", whisperName, whisperMessage);
+
+            write(destination, message, sizeof(message));
         } else {
             send_message(message, str_len);
         }

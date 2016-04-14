@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <pthread.h>
 
-#define BUFSIZE 100
+#define BUFSIZE 1000
 #define NAMESIZE 20
 
 void *send_message(void *arg);
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 {
     int sock = (int) arg;
-    char name_message[NAMESIZE + BUFSIZE], temp[NAMESIZE];
+    char name_message[NAMESIZE + BUFSIZE];
     char *userName = NULL;
     while (1) {
         fgets(message, BUFSIZE, stdin);
@@ -70,8 +70,6 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
             close(sock);
             exit(0);
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
-            memset(temp, 0, sizeof(char) * NAMESIZE);
-
             strtok(message, " ");
             userName = strtok(NULL, " ");
             userName[strlen(userName) - 1] = '\0';
@@ -81,6 +79,20 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
             write(sock, name_message, sizeof(name_message));
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             sprintf(name_message, "@@member");
+        } else if (message[0] == '@' && message[1] == '@' && message[2] == 't' && message[3] == 'a' && message[4] == 'l' && message[5] == 'k') {
+            char whisperName[NAMESIZE] = {0}, whisperMessage[NAMESIZE] = {0};
+            char *temp = NULL;
+
+            strtok(message, " ");
+            temp = strtok(NULL, " ");
+            //temp[strlen(temp) - 1] = '\0';
+            strcpy(whisperName, temp);
+
+            temp = strtok(NULL, " ");
+            //temp[strlen(temp) - 1] = '\0';
+            strcpy(whisperMessage, temp);
+
+            sprintf(name_message, "@@talk %s %s", whisperName, whisperMessage);
         } else {
             sprintf(name_message, "%s %s", name, message);
         }
