@@ -60,27 +60,37 @@ int main(int argc, char **argv) {
 void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 {
     int sock = (int) arg;
-    int i;
     char name_message[NAMESIZE + BUFSIZE], temp[NAMESIZE];
+    char *userName = NULL;
     while (1) {
         fgets(message, BUFSIZE, stdin);
         if (!strcmp(message, "@@out\n")) {  /* '@@out' 입력 시 종료 */
+//            sprintf(name_message, "[%s]님이 퇴장하셨습니다!\n", userName);
+//            write(sock, name_message, sizeof(name_message));
             close(sock);
             exit(0);
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
             memset(temp, 0, sizeof(char) * NAMESIZE);
 
-            for (i = 7; message[i] != '\n'; i++)
-                temp[i - 7] = message[i];
+            strtok(message, " ");
+            userName = strtok(NULL, " ");
+            userName[strlen(userName) - 1] = '\0';
 
-            sprintf(name, "[%s]", temp);
-            sprintf(name_message, "%s", message);
+            sprintf(name, "[%s]", userName);
+            sprintf(name_message, "@@join %s\n", userName);
+            write(sock, name_message, sizeof(name_message));
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             sprintf(name_message, "@@member");
         } else {
             sprintf(name_message, "%s %s", name, message);
         }
-        write(sock, name_message, strlen(name_message));
+
+        if (strcmp(name, "[Default]") == 0) {
+            printf("@@join <name> 사용해 닉네임 설정을 해주시기 바랍니다.\n");
+            continue;
+        } else {
+            write(sock, name_message, strlen(name_message));
+        }
     }
 }
 

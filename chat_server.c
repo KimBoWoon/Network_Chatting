@@ -24,7 +24,7 @@ void send_message(char *message, int len);
 
 void addUser(int clnt_sock, char *message);
 
-void showUser();
+void showUserInfo(int clnt_sock);
 
 void error_handling(char *message);
 
@@ -86,22 +86,14 @@ int main(int argc, char **argv) {
 void *clnt_connection(void *arg) {
     int clnt_sock = (int) arg;
     int str_len = 0;
-    char message[BUFSIZE], temp[BUFSIZE];
+    char message[BUFSIZE], temp[BUFSIZE], merge[BUFSIZE];
     int i;
 
     while ((str_len = read(clnt_sock, message, sizeof(message))) != 0) {
         if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
             addUser(clnt_sock, message);
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
-            printf("접속중인 사람 출력\n");
-            pthread_mutex_lock(&mutx);
-            for (i = 0; i < clnt_number; i++) {
-                sprintf(temp, "[%s] 접속 중\n", userList[i].name);
-                printf("%s", temp);
-                write(clnt_sock, temp, sizeof(temp));
-                memset(temp, 0, sizeof(char) * BUFSIZE);
-            }
-            pthread_mutex_unlock(&mutx);
+            showUserInfo(clnt_sock);
         } else {
             send_message(message, str_len);
         }
@@ -125,34 +117,39 @@ void *clnt_connection(void *arg) {
 }
 
 void addUser(int clnt_sock, char *message) {
-    char temp[BUFSIZE] = { 0 };
-    char *addtemp = NULL;
+    char broadcastMessage[BUFSIZE] = {0};
+    char *userName = NULL;
     int i = 0;
 
-    strcpy(temp, message);
-    strtok(temp, " ");
+    strtok(message, " ");
+    userName = strtok(NULL, " ");
+    userName[strlen(userName) - 1] = '\0';
+    printf("[%s]님이 입장했습니다!\n", userName);
 
-    addtemp = strtok(NULL, " ");
-    addtemp[strlen(addtemp) - 1] = '\0';
-    printf("[%s]님이 입장했습니다!\n", addtemp);
     for (i = 0; i < clnt_number; i++) {
         if (clnt_sock == clnt_socks[i]) {
-            strcpy(userList[i].name, addtemp);
+            strcpy(userList[i].name, userName);
             break;
         }
     }
-    sprintf(message, "[%s]님이 입장하셨습니다!\n", addtemp);
-    send_message(message, strlen(message));
-    memset(message, 0, sizeof(char) * BUFSIZE);
-    memset(addtemp, 0, sizeof(char*));
+
+    sprintf(broadcastMessage, "[%s]님이 입장하셨습니다!\n", userName);
+    send_message(broadcastMessage, sizeof(broadcastMessage));
+    memset(broadcastMessage, 0, sizeof(char) * BUFSIZE);
+    memset(userName, 0, sizeof(char*));
 }
 
-void showUser() {
+void showUserInfo(int clnt_sock) {
     int i;
-//    pthread_mutex_lock(&mutx);
-//    for (i = 0; i < clnt_number; i++)
-//        write(clnt_socks[i], message, len);
-//    pthread_mutex_unlock(&mutx);
+    char temp[BUFSIZE], merge[BUFSIZE];
+    printf("접속중인 사람 출력\n");
+    for (i = 0; i < clnt_number; i++) {
+        sprintf(temp, "[%s] 접속 중\n", userList[i].name);
+        printf("%s", temp);
+        strcat(merge, temp);
+        memset(temp, 0, sizeof(char) * BUFSIZE);
+    }
+    write(clnt_sock, merge, sizeof(merge));
 }
 
 void send_message(char *message, int len) {
