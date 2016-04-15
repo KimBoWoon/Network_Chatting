@@ -155,11 +155,14 @@ void showUserInfo(int clnt_sock) {
 }
 
 void whisper(char *message) {
-    char whisperName[BUFSIZE] = {0}, whisperMessage[BUFSIZE] = {0}, sendMessage[BUFSIZE] = {0};
+    char whisperName[BUFSIZE] = {0}, whisperMessage[BUFSIZE] = {0}, sendMessage[BUFSIZE] = {0}, from[BUFSIZE] = {0};
     char *temp = NULL;
     int destination = 0, i;
 
     strtok(message, " ");
+    temp = strtok(NULL, " ");
+    strcpy(from, temp);
+
     temp = strtok(NULL, " ");
     strcpy(whisperName, temp);
 
@@ -175,7 +178,7 @@ void whisper(char *message) {
             destination = clnt_socks[i];
     }
 
-    sprintf(sendMessage, "whisper >> [%s] %s", whisperName, whisperMessage);
+    sprintf(sendMessage, "whisper >> %s %s", from, whisperMessage);
 
     write(destination, sendMessage, sizeof(sendMessage));
 }

@@ -96,7 +96,7 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
                 temp = strtok(NULL, " ");
             }
 
-            sprintf(name_message, "@@talk %s %s", whisperName, whisperMessage);
+            sprintf(name_message, "@@talk %s %s %s", name, whisperName, whisperMessage);
             write(sock, name_message, strlen(name_message));
         } else if (strcmp(name, "[Default]") == 0) {
             printf("@@join <name> 사용해 닉네임 설정을 해주시기 바랍니다.\n");
