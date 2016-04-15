@@ -66,8 +66,8 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
         fgets(message, BUFSIZE, stdin);
 
         if (!strcmp(message, "@@out\n")) {  /* '@@out' 입력 시 종료 */
-//            sprintf(name_message, "[%s]님이 퇴장하셨습니다!\n", userName);
-//            write(sock, name_message, sizeof(name_message));
+            sprintf(name_message, "[%s]님이 퇴장하셨습니다!\n", userName);
+            write(sock, name_message, sizeof(name_message));
             close(sock);
             exit(0);
         } else if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
@@ -98,10 +98,17 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 
             sprintf(name_message, "@@talk %s %s %s", name, whisperName, whisperMessage);
             write(sock, name_message, strlen(name_message));
+        } else if (message[0] == '@' && message[1] == '@') {
+            printf("@@는 command 전용 메시지 입니다!\n");
+            printf("<<command list>>\n");
+            printf("채팅방 입장 : @@join <name>\n");
+            printf("접속중인 사용자 : @@member\n");
+            printf("귓속말 보내기 : @@talk <to> <message>\n");
+            printf("채팅방 퇴장 : @@out\n");
         } else if (strcmp(name, "[Default]") == 0) {
             printf("@@join <name> 사용해 닉네임 설정을 해주시기 바랍니다.\n");
             continue;
-        } else {
+        }  else {
             sprintf(name_message, "%s %s", name, message);
             write(sock, name_message, strlen(name_message));
         }
