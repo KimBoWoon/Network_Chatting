@@ -65,7 +65,7 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
     while (1) {
         fgets(message, BUFSIZE, stdin);
 
-        if (!strcmp(message, "@@out\n")) {  /* '@@out' 입력 시 종료 */
+        if (!strcmp(message, "&quit\n")) {  /* '@@out' 입력 시 종료 */
             sprintf(name_message, "[%s]님이 퇴장하셨습니다!\n", userName);
             write(sock, name_message, sizeof(name_message));
             close(sock);
@@ -78,10 +78,12 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
             sprintf(name, "[%s]", userName);
             sprintf(name_message, "@@join %s\n", userName);
             write(sock, name_message, sizeof(name_message));
-        } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
+        } else if (message[0] == '&' && message[1] == 'l' && message[2] == 'i' && message[3] == 's' && message[4] == 't') {
+//        } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             sprintf(name_message, "@@member");
             write(sock, name_message, strlen(name_message));
-        } else if (message[0] == '@' && message[1] == '@' && message[2] == 't' && message[3] == 'a' && message[4] == 'l' && message[5] == 'k') {
+        } else if (message[0] == '&' &&message[1] == 'p' && message[2] == '2' && message[3] == 'p') {
+//        } else if (message[0] == '@' && message[1] == '@' && message[2] == 't' && message[3] == 'a' && message[4] == 'l' && message[5] == 'k') {
             char whisperName[NAMESIZE] = {0}, whisperMessage[NAMESIZE] = {0};
             char *temp = NULL;
 
@@ -98,8 +100,9 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 
             sprintf(name_message, "@@talk %s %s %s", name, whisperName, whisperMessage);
             write(sock, name_message, strlen(name_message));
-        } else if (message[0] == '@' && message[1] == '@') {
-            printf("@@는 command 전용 메시지 입니다!\n");
+        } else if (message[0] == '&') {
+//        } else if (message[0] == '@' && message[1] == '@') {
+            printf("&는 command 전용 메시지 입니다!\n");
             printf("<<command list>>\n");
             printf("채팅방 입장 : @@join <name>\n");
             printf("접속중인 사용자 : @@member\n");
