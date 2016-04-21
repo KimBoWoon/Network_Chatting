@@ -105,9 +105,9 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
             printf("&는 command 전용 메시지 입니다!\n");
             printf("<<command list>>\n");
             printf("채팅방 입장 : @@join <name>\n");
-            printf("접속중인 사용자 : @@member\n");
-            printf("귓속말 보내기 : @@talk <to> <message>\n");
-            printf("채팅방 퇴장 : @@out\n");
+            printf("접속중인 사용자 : &list\n");
+            printf("귓속말 보내기 : &p2p <to> <message>\n");
+            printf("채팅방 퇴장 : &quit\n");
         } else if (strcmp(name, "[Default]") == 0) {
             printf("@@join <name> 사용해 닉네임 설정을 해주시기 바랍니다.\n");
             continue;
