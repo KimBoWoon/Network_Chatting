@@ -33,8 +33,6 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    //sprintf(name, "[%s]", argv[3]);
-
     sock = socket(PF_INET, SOCK_STREAM, 0);
     if (sock == -1)
         error_handling("socket() error");
@@ -61,7 +59,14 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 {
     int sock = (int) arg;
     char name_message[NAMESIZE + BUFSIZE];
-    char *userName = NULL;
+    char userName[100] = {0};
+
+    printf("닉네임을 입력해주세요! >> ");
+    scanf("%s", userName);
+    sprintf(name, "[%s]", userName);
+    sprintf(name_message, "@@join %s\n", userName);
+    write(sock, name_message, sizeof(name_message));
+
     while (1) {
         fgets(message, BUFSIZE, stdin);
 
@@ -70,14 +75,6 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
             write(sock, name_message, sizeof(name_message));
             close(sock);
             exit(0);
-        } else if (message[0] == '@' && message[1] == '@' && message[2] == 'j' && message[3] == 'o' && message[4] == 'i' && message[5] == 'n') {
-            strtok(message, " ");
-            userName = strtok(NULL, " ");
-            userName[strlen(userName) - 1] = '\0';
-
-            sprintf(name, "[%s]", userName);
-            sprintf(name_message, "@@join %s\n", userName);
-            write(sock, name_message, sizeof(name_message));
         } else if (message[0] == '&' && message[1] == 'l' && message[2] == 'i' && message[3] == 's' && message[4] == 't') {
 //        } else if (message[0] == '@' && message[1] == '@' && message[2] == 'm' && message[3] == 'e' && message[4] == 'm' && message[5] == 'b' && message[6] == 'e' && message[7] == 'r') {
             sprintf(name_message, "@@member");
@@ -108,9 +105,6 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
             printf("접속중인 사용자 : &list\n");
             printf("귓속말 보내기 : &p2p <to> <message>\n");
             printf("채팅방 퇴장 : &quit\n");
-        } else if (strcmp(name, "[Default]") == 0) {
-            printf("@@join <name> 사용해 닉네임 설정을 해주시기 바랍니다.\n");
-            continue;
         }  else {
             sprintf(name_message, "%s %s", name, message);
             write(sock, name_message, strlen(name_message));
