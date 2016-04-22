@@ -101,7 +101,6 @@ void *send_message(void *arg) /* 메시지 전송 쓰레드 실행 함수 */
 //        } else if (message[0] == '@' && message[1] == '@') {
             printf("&는 command 전용 메시지 입니다!\n");
             printf("<<command list>>\n");
-            printf("채팅방 입장 : @@join <name>\n");
             printf("접속중인 사용자 : &list\n");
             printf("귓속말 보내기 : &p2p <to> <message>\n");
             printf("채팅방 퇴장 : &quit\n");
