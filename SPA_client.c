@@ -338,7 +338,7 @@ DWORD WINAPI ClientConn(void *arg)
 		SendMSG(message, strLen);
 
 	WaitForSingleObject(hMutex, INFINITE);
-	for (i = 0; i < clntNumber; i++) {   // Å¬¶óÀÌ¾ðÆ® ¿¬°á Á¾·á½Ã
+	for (i = 0; i < clntNumber; i++) {   // í´ë¼ì´ì–¸íŠ¸ ì—°ê²° ì¢…ë£Œì‹œ
 		if (clntSock == clntSocks[i]) {
 			for (; i < clntNumber - 1; i++)
 				clntSocks[i] = clntSocks[i + 1];
@@ -435,15 +435,15 @@ int main() {
 
 			break;
 		case 5: // client
-			printf("IP Address, port, ÀÌ¸§, ÇÐ¹ø : ");
+			printf("IP Address, port, ì´ë¦„, í•™ë²ˆ : ");
 			scanf("%s %d %s %d", &addr, &port, &name, &studuntID);
 
 			if ((WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0)
 				ErrorHandling("WSAStartup() error");
-			sock = socket(PF_INET, SOCK_STREAM, 0); //IP4V, TCPÀü¼Û 
+			sock = socket(PF_INET, SOCK_STREAM, 0); //IP4V, TCPì „ì†¡ 
 			if (sock == -1)
 				ErrorHandling("socket() error");
-			/* client¿¡ ÁÖ¼Ò ÇÒ´ç ÃÊ±âÈ­ */
+			/* clientì— ì£¼ì†Œ í• ë‹¹ ì´ˆê¸°í™” */
 			memset(&clntAddr, 0, sizeof(clntAddr));
 			clntAddr.sin_family = AF_INET;
 			clntAddr.sin_addr.s_addr = inet_addr(addr);
